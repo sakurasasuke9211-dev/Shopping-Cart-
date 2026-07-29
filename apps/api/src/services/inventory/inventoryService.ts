@@ -1,10 +1,12 @@
 import type { InventoryLoadResult, Product } from "@sports-shop/shared";
 import { config } from "../../config.js";
 import { AppError } from "../../middleware/errorHandler.js";
+import { loadEmbeddedCatalog } from "./embeddedCatalog.js";
 import { tryLoadFromFallbackPaths } from "./fileLoader.js";
 import { tryLoadFromSheets } from "./sheetsLoader.js";
 
 let cache: InventoryLoadResult | null = null;
+let loadingPromise: Promise<InventoryLoadResult> | null = null;
 let refreshTimer: NodeJS.Timeout | null = null;
 
 function logLoad(result: InventoryLoadResult): void {
@@ -25,17 +27,30 @@ function logLoad(result: InventoryLoadResult): void {
   }
 }
 
-export async function loadInventory(): Promise<InventoryLoadResult> {
-  const fallbackPaths = config.inventory.fallbackPaths;
-  let result: InventoryLoadResult | null = null;
-  const warnings: string[] = [];
+async function tryLoadFromFiles(): Promise<InventoryLoadResult | null> {
+  try {
+    return await tryLoadFromFallbackPaths(config.inventory.fallbackPaths);
+  } catch (error) {
+    console.warn(
+      "[inventory] file fallback failed",
+      error instanceof Error ? error.message : error,
+    );
+    return null;
+  }
+}
 
-  // Vercel: bundled CSV cold-starts in milliseconds; Sheets can take 30–60s.
+async function loadInventoryInternal(): Promise<InventoryLoadResult> {
+  const warnings: string[] = [];
+  let result: InventoryLoadResult | null = null;
+
+  // Vercel: embedded catalog is instant and always available in the bundle.
   if (process.env.VERCEL) {
-    result = await tryLoadFromFallbackPaths(fallbackPaths);
-    if (!result) {
-      warnings.push("Bundled inventory unavailable; trying Google Sheets.");
-    }
+    result = loadEmbeddedCatalog();
+    warnings.push("Using embedded catalog on Vercel.");
+  }
+
+  if (!result) {
+    result = await tryLoadFromFiles();
   }
 
   if (
@@ -51,7 +66,12 @@ export async function loadInventory(): Promise<InventoryLoadResult> {
   }
 
   if (!result) {
-    result = await tryLoadFromFallbackPaths(fallbackPaths);
+    result = await tryLoadFromFiles();
+  }
+
+  if (!result) {
+    result = loadEmbeddedCatalog();
+    warnings.push("All remote/file sources failed; using embedded catalog.");
   }
 
   result = {
@@ -63,6 +83,14 @@ export async function loadInventory(): Promise<InventoryLoadResult> {
   logLoad(result);
   scheduleRefresh();
   return result;
+}
+
+export async function loadInventory(): Promise<InventoryLoadResult> {
+  if (cache) return cache;
+  if (!loadingPromise) {
+    loadingPromise = loadInventoryInternal();
+  }
+  return loadingPromise;
 }
 
 function scheduleRefresh(): void {
@@ -77,6 +105,8 @@ function scheduleRefresh(): void {
   if (refreshMs <= 0) return;
 
   refreshTimer = setInterval(() => {
+    cache = null;
+    loadingPromise = null;
     void loadInventory().catch((error) => {
       console.error(
         "[inventory] refresh failed",
@@ -89,6 +119,8 @@ function scheduleRefresh(): void {
 }
 
 export async function reloadInventory(): Promise<InventoryLoadResult> {
+  cache = null;
+  loadingPromise = null;
   return loadInventory();
 }
 

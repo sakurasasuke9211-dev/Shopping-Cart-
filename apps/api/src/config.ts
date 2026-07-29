@@ -42,7 +42,10 @@ export const config = {
   port: envInt(process.env.PORT, 4000),
   webOrigin: process.env.WEB_ORIGIN ?? "http://localhost:5173",
   inventory: {
-    preferSheets: envBool(process.env.INVENTORY_PREFER_SHEETS, true),
+    preferSheets: envBool(
+      process.env.INVENTORY_PREFER_SHEETS,
+      !process.env.VERCEL,
+    ),
     fallbackPath: primaryFallback,
     dataDir,
     fallbackPaths: [

@@ -1,25 +1,61 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parse } from "csv-parse/sync";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const apiRoot = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(apiRoot, "../..");
 const dataDir = path.join(apiRoot, "data");
+const inventoryDir = path.join(apiRoot, "src", "inventory");
 
 const sources = [
   path.join(repoRoot, "database", "sports_shopping_cart_product_catalog.csv"),
+  path.join(apiRoot, "data", "inventory.csv"),
   path.join(repoRoot, "data", "inventory.csv"),
 ];
 
 fs.mkdirSync(dataDir, { recursive: true });
+fs.mkdirSync(inventoryDir, { recursive: true });
 
 const source = sources.find((candidate) => fs.existsSync(candidate));
 if (!source) {
-  console.warn("[prepare-vercel] No inventory CSV found; relying on Google Sheets only.");
+  console.warn("[prepare-vercel] No inventory CSV found.");
   process.exit(0);
 }
 
+const csvText = fs.readFileSync(source, "utf8");
+const records = parse(csvText, {
+  columns: true,
+  skip_empty_lines: true,
+  trim: true,
+  relax_column_count: true,
+  bom: true,
+});
+
+const rawRows = parse(csvText, {
+  columns: false,
+  skip_empty_lines: true,
+  trim: true,
+  relax_column_count: true,
+  bom: true,
+});
+
+const rows = records.map((record, index) => {
+  const cells = rawRows[index + 1];
+  const colQ = cells?.[16] ?? "";
+  return {
+    ...record,
+    __col_Q: colQ,
+    images: record.images || record.image || colQ || "",
+  };
+});
+
 const dest = path.join(dataDir, "inventory.csv");
+const embeddedDest = path.join(inventoryDir, "embeddedRows.json");
+
 fs.copyFileSync(source, dest);
+fs.writeFileSync(embeddedDest, JSON.stringify(rows, null, 2));
+
 console.info(`[prepare-vercel] Copied ${path.relative(repoRoot, source)} → data/inventory.csv`);
+console.info(`[prepare-vercel] Wrote ${rows.length} rows → src/inventory/embeddedRows.json`);

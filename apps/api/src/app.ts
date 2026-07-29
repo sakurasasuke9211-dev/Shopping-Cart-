@@ -23,23 +23,12 @@ import {
   loadInventory,
 } from "./services/inventory/inventoryService.js";
 
-let inventoryLoaded = false;
 let inventoryPromise: Promise<void> | null = null;
 
 async function ensureInventory(): Promise<void> {
-  if (inventoryLoaded) return;
-
   if (!inventoryPromise) {
-    inventoryPromise = loadInventory()
-      .then(() => {
-        inventoryLoaded = true;
-      })
-      .catch((error) => {
-        inventoryPromise = null;
-        throw error;
-      });
+    inventoryPromise = loadInventory().then(() => undefined);
   }
-
   await inventoryPromise;
 }
 
