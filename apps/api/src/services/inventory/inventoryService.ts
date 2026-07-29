@@ -30,7 +30,18 @@ export async function loadInventory(): Promise<InventoryLoadResult> {
   let result: InventoryLoadResult | null = null;
   const warnings: string[] = [];
 
-  if (config.inventory.preferSheets || config.inventory.sheets.spreadsheetId) {
+  // Vercel: bundled CSV cold-starts in milliseconds; Sheets can take 30–60s.
+  if (process.env.VERCEL) {
+    result = await tryLoadFromFallbackPaths(fallbackPaths);
+    if (!result) {
+      warnings.push("Bundled inventory unavailable; trying Google Sheets.");
+    }
+  }
+
+  if (
+    !result &&
+    (config.inventory.preferSheets || config.inventory.sheets.spreadsheetId)
+  ) {
     result = await tryLoadFromSheets();
     if (!result) {
       warnings.push(

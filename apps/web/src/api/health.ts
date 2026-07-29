@@ -1,3 +1,5 @@
+import { getAbsoluteApiBaseUrl } from "../lib/apiBase";
+
 export type HealthResponse = {
   status: "ok" | "degraded" | string;
   service: string;
@@ -17,7 +19,9 @@ export type HealthResponse = {
 };
 
 export async function fetchHealth(): Promise<HealthResponse> {
-  const response = await fetch("/api/health");
+  const base = getAbsoluteApiBaseUrl();
+  const url = base ? `${base}/api/health` : "/api/health";
+  const response = await fetch(url);
   const data = (await response.json().catch(() => null)) as HealthResponse | null;
   if (!response.ok || !data) {
     throw new Error(

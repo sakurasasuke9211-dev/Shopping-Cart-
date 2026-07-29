@@ -71,38 +71,88 @@ export type OrderCustomerInput = {
 
 import { getApiBaseUrl } from "../lib/apiBase";
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+const MAX_ATTEMPTS = 4;
+const RETRY_DELAY_MS = 2500;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableStatus(status: number): boolean {
+  return status === 503 || status === 502 || status === 504;
+}
+
+function buildHeaders(init?: RequestInit): HeadersInit {
+  const method = (init?.method ?? "GET").toUpperCase();
+  const headers: Record<string, string> = {
+    ...(init?.headers as Record<string, string> | undefined),
+  };
+  if (method !== "GET" && method !== "HEAD" && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
+  return headers;
+}
+
+async function request<T>(
+  path: string,
+  init?: RequestInit,
+  attempt = 0,
+): Promise<T> {
   const base = getApiBaseUrl();
   const url = base ? `${base}${path}` : path;
-  const response = await fetch(url, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {}),
-    },
-  });
 
-  const data = (await response.json().catch(() => null)) as
-    | T
-    | { error?: { message?: string } }
-    | null;
-  if (!response.ok) {
-    const message =
-      data && typeof data === "object" && "error" in data
-        ? (data as { error?: { message?: string } }).error?.message
-        : undefined;
-    throw new Error(message ?? `Request failed (${response.status})`);
-  }
-  if (data === null) {
-    const contentType = response.headers.get("content-type") ?? "";
-    if (!contentType.includes("application/json")) {
+  try {
+    const response = await fetch(url, {
+      ...init,
+      headers: buildHeaders(init),
+    });
+
+    const data = (await response.json().catch(() => null)) as
+      | T
+      | { error?: { message?: string } }
+      | null;
+
+    if (
+      !response.ok &&
+      isRetryableStatus(response.status) &&
+      attempt < MAX_ATTEMPTS - 1
+    ) {
+      await sleep(RETRY_DELAY_MS * (attempt + 1));
+      return request<T>(path, init, attempt + 1);
+    }
+
+    if (!response.ok) {
+      const message =
+        data && typeof data === "object" && "error" in data
+          ? (data as { error?: { message?: string } }).error?.message
+          : undefined;
+      throw new Error(message ?? `Request failed (${response.status})`);
+    }
+
+    if (data === null) {
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        throw new Error(
+          "API returned an invalid response. The server may still be starting — try again.",
+        );
+      }
+      throw new Error("API returned an empty response.");
+    }
+
+    return data as T;
+  } catch (error) {
+    const isNetworkError = error instanceof TypeError;
+    if (isNetworkError && attempt < MAX_ATTEMPTS - 1) {
+      await sleep(RETRY_DELAY_MS * (attempt + 1));
+      return request<T>(path, init, attempt + 1);
+    }
+    if (isNetworkError) {
       throw new Error(
-        "API returned an invalid response. Check VITE_API_BASE_URL and redeploy the frontend.",
+        "Could not reach the server. It may still be starting — please wait a moment and refresh.",
       );
     }
-    throw new Error("API returned an empty response.");
+    throw error;
   }
-  return data as T;
 }
 
 export function fetchRecommendations(

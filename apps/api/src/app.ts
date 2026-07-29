@@ -24,12 +24,23 @@ import {
 } from "./services/inventory/inventoryService.js";
 
 let inventoryLoaded = false;
+let inventoryPromise: Promise<void> | null = null;
 
 async function ensureInventory(): Promise<void> {
-  if (!inventoryLoaded) {
-    await loadInventory();
-    inventoryLoaded = true;
+  if (inventoryLoaded) return;
+
+  if (!inventoryPromise) {
+    inventoryPromise = loadInventory()
+      .then(() => {
+        inventoryLoaded = true;
+      })
+      .catch((error) => {
+        inventoryPromise = null;
+        throw error;
+      });
   }
+
+  await inventoryPromise;
 }
 
 export function createApp(): express.Express {
