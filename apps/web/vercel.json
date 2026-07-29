@@ -6,6 +6,10 @@
   "outputDirectory": "dist",
   "installCommand": "cd ../.. && npm install",
   "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://shopping-cart-api-steel.vercel.app/api/:path*"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

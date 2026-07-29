@@ -55,6 +55,8 @@ export async function loadInventory(): Promise<InventoryLoadResult> {
 }
 
 function scheduleRefresh(): void {
+  if (process.env.VERCEL) return;
+
   if (refreshTimer) {
     clearInterval(refreshTimer);
     refreshTimer = null;

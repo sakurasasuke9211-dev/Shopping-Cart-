@@ -3,7 +3,12 @@ import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const repoRoot = path.resolve(__dirname, "../../..");
+
+/** Compiled output lives in `dist/`; on Vercel the deploy root is `apps/api`. */
+const apiRoot = path.resolve(__dirname, "..");
+export const repoRoot = process.env.VERCEL
+  ? apiRoot
+  : path.resolve(__dirname, "../../..");
 
 dotenv.config({ path: path.join(repoRoot, ".env") });
 
@@ -22,16 +27,16 @@ const spreadsheetId =
   process.env.GOOGLE_SHEETS_SPREADSHEET_ID ??
   "1XD6e2f_IQ1hvBn7Mq92H0AtRdcSX7_A67x0mDG6GyBk";
 
+const defaultFallback = process.env.VERCEL
+  ? "data/inventory.csv"
+  : "database/sports_shopping_cart_product_catalog.csv";
+
 const primaryFallback = path.resolve(
-  repoRoot,
-  process.env.INVENTORY_FALLBACK_PATH ??
-    "database/sports_shopping_cart_product_catalog.csv",
+  apiRoot,
+  process.env.INVENTORY_FALLBACK_PATH ?? defaultFallback,
 );
 
-const dataDir = path.resolve(
-  repoRoot,
-  process.env.INVENTORY_DATA_DIR ?? "data",
-);
+const dataDir = path.resolve(apiRoot, process.env.INVENTORY_DATA_DIR ?? "data");
 
 export const config = {
   port: envInt(process.env.PORT, 4000),
@@ -45,6 +50,7 @@ export const config = {
       path.join(dataDir, "inventory.json"),
       path.join(dataDir, "inventory.csv"),
       path.join(dataDir, "inventory.xlsx"),
+      path.join(apiRoot, "data", "inventory.csv"),
       path.join(repoRoot, "database", "sports_shopping_cart_product_catalog.csv"),
     ],
     refreshMs: envInt(process.env.INVENTORY_REFRESH_MS, 900_000),

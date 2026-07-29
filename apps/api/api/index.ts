@@ -1,5 +1,4 @@
-import { createApp } from "../src/app.js";
+import { createApp } from "../dist/app.js";
 
-const app = createApp();
-
-export default app;
+/** Vercel serverless entry — routes all traffic through the Express app. */
+export default createApp();

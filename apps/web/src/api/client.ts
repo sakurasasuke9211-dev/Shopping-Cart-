@@ -69,10 +69,11 @@ export type OrderCustomerInput = {
   };
 };
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, "");
+import { getApiBaseUrl } from "../lib/apiBase";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const url = API_BASE ? `${API_BASE}${path}` : path;
+  const base = getApiBaseUrl();
+  const url = base ? `${base}${path}` : path;
   const response = await fetch(url, {
     ...init,
     headers: {
@@ -83,13 +84,23 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   const data = (await response.json().catch(() => null)) as
     | T
-    | { error?: { message?: string } };
+    | { error?: { message?: string } }
+    | null;
   if (!response.ok) {
     const message =
       data && typeof data === "object" && "error" in data
         ? (data as { error?: { message?: string } }).error?.message
         : undefined;
     throw new Error(message ?? `Request failed (${response.status})`);
+  }
+  if (data === null) {
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+      throw new Error(
+        "API returned an invalid response. Check VITE_API_BASE_URL and redeploy the frontend.",
+      );
+    }
+    throw new Error("API returned an empty response.");
   }
   return data as T;
 }

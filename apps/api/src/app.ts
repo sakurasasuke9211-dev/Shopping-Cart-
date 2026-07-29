@@ -59,8 +59,13 @@ export function createApp(): express.Express {
   app.use(express.json());
   app.use(sessionMiddleware);
 
-  app.get("/api/health", async (_req, res) => {
-    await ensureInventory();
+  app.use("/api", (_req, _res, next) => {
+    void ensureInventory()
+      .then(() => next())
+      .catch(next);
+  });
+
+  app.get("/api/health", (_req, res) => {
     const inventory = getInventoryMeta();
     const inventoryReady = Boolean(inventory && inventory.productCount > 0);
     res.status(inventoryReady ? 200 : 503).json({
