@@ -1,0 +1,67 @@
+{
+  "projectId": "1661451065380919448",
+  "projectUrl": "https://stitch.withgoogle.com/projects/1661451065380919448",
+  "brand": "Sports Mart",
+  "audience": "45+",
+  "screens": [
+    {
+      "order": 1,
+      "name": "Opening Page",
+      "screenId": "124c25d4c4dc498697b36754a13981ad",
+      "localFile": "01-opening.png",
+      "status": "saved"
+    },
+    {
+      "order": 2,
+      "name": "Login Page",
+      "localFile": "02-login.png",
+      "status": "saved"
+    },
+    {
+      "order": 3,
+      "name": "Questionnaire Page",
+      "localFile": "03-questionnaire.png",
+      "status": "saved"
+    },
+    {
+      "order": 4,
+      "name": "Product Details",
+      "screenId": "6e6492f57f1944acb077b1b3a871891f",
+      "localFile": "04-product-details.png",
+      "status": "saved"
+    },
+    {
+      "order": 4.1,
+      "name": "Product Details - Added to Cart",
+      "localFile": "04-product-details-added-to-cart.png",
+      "status": "saved"
+    },
+    {
+      "order": 5,
+      "name": "Cart Review",
+      "screenId": "83ff30329f09451698e5aa6d714afa48",
+      "localFile": "05-cart-review.png",
+      "status": "saved"
+    },
+    {
+      "order": 6,
+      "name": "Recommendation",
+      "screenId": "1e80db28cd414bc787e3219d7c139138",
+      "localFile": "06-recommendation.png",
+      "status": "saved"
+    },
+    {
+      "order": 7,
+      "name": "Payment Page",
+      "localFile": "07-payment.png",
+      "status": "saved"
+    },
+    {
+      "order": 8,
+      "name": "Order Confirmation Page",
+      "screenId": "ca6b62c8d62046928bfdbae06d4b002b",
+      "localFile": "08-order-confirmation.png",
+      "status": "pending"
+    }
+  ]
+}

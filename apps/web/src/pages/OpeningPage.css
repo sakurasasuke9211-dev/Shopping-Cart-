@@ -1,0 +1,73 @@
+.opening {
+  position: relative;
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+  display: grid;
+  align-items: center;
+}
+
+.opening__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgb(8 12 28 / 78%) 0%,
+    rgb(8 12 28 / 45%) 48%,
+    rgb(8 12 28 / 18%) 100%
+  );
+}
+
+.opening__content {
+  position: relative;
+  z-index: 1;
+  width: min(34rem, 100%);
+  padding: var(--space-7) var(--space-5);
+}
+
+.opening__brand {
+  font-size: clamp(3rem, 7vw, 4.5rem);
+  color: #fff;
+  margin-bottom: var(--space-3);
+}
+
+.opening__tagline {
+  color: rgb(255 255 255 / 92%);
+  font-size: 1.25rem;
+  max-width: 28rem;
+  margin-bottom: var(--space-5);
+}
+
+.opening__cta {
+  min-width: 14rem;
+  min-height: 3.25rem;
+  font-size: 1.1rem;
+}
+
+.opening__auth-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.opening__auth-link {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  min-height: 3rem;
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--text-body);
+}
+
+.opening__auth-link:hover {
+  text-decoration: underline;
+}
+
+.opening__divider {
+  width: 1px;
+  height: 1.25rem;
+  background: rgb(255 255 255 / 55%);
+}

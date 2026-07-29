@@ -1,0 +1,95 @@
+.login-page {
+  min-height: 100vh;
+  background: var(--color-bg);
+  padding: var(--space-5) var(--space-4) var(--space-7);
+}
+
+.login-page__top {
+  width: min(28rem, 100%);
+  margin: 0 auto var(--space-5);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.login-page__back {
+  color: var(--color-ink);
+  text-decoration: none;
+  font-weight: 700;
+  width: fit-content;
+  min-height: 3rem;
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--text-body);
+}
+
+.login-page__brand {
+  text-align: center;
+  font-family: var(--font-display);
+  color: var(--color-primary);
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.login-card {
+  width: min(28rem, 100%);
+  margin: 0 auto;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6) var(--space-5);
+  box-shadow: var(--shadow-card);
+}
+
+.login-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.login-tabs button {
+  background: transparent;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  min-height: 3rem;
+  color: var(--color-ink-muted);
+  font-weight: 700;
+}
+
+.login-tabs button.is-active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.login-or {
+  display: grid;
+  place-items: center;
+  margin: var(--space-4) 0;
+  color: var(--color-ink-muted);
+  position: relative;
+}
+
+.login-or::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.login-or span {
+  position: relative;
+  background: var(--color-bg-elevated);
+  padding: 0 var(--space-3);
+}
+
+.login-card .btn + .btn {
+  margin-top: var(--space-3);
+}
+
+.login-footer {
+  margin-top: var(--space-5);
+  text-align: center;
+}

@@ -1,0 +1,29 @@
+{
+  "name": "sports-shopping-app",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Personalized sports equipment recommendations for users aged 45+",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "postinstall": "npm run build -w @sports-shop/shared",
+    "dev": "concurrently -n api,web -c green,cyan \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "npm run dev -w @sports-shop/api",
+    "dev:web": "npm run dev -w @sports-shop/web",
+    "build": "npm run build -w @sports-shop/shared && npm run build -w @sports-shop/api && npm run build -w @sports-shop/web",
+    "build:shared": "npm run build -w @sports-shop/shared",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "smoke:phase3": "node scripts/smoke-phase3.mjs",
+    "smoke:phase4": "node scripts/smoke-phase4.mjs",
+    "smoke:phase7": "node scripts/smoke-phase7.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
