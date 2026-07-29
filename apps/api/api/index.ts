@@ -1,7 +1,19 @@
 import { createApp } from "../dist/app.js";
-import { loadInventory } from "../dist/services/inventory/inventoryService.js";
+import {
+  bootstrapEmbeddedInventory,
+  loadInventory,
+} from "../dist/services/inventory/inventoryService.js";
 
-/** Warm inventory as soon as the function boots (CSV on Vercel is ~instant). */
+/** Sync warm — catalog is compiled into the bundle. */
+try {
+  bootstrapEmbeddedInventory();
+} catch (error) {
+  console.error(
+    "[api] sync inventory bootstrap failed",
+    error instanceof Error ? error.message : error,
+  );
+}
+
 void loadInventory().catch((error) => {
   console.error(
     "[api] cold-start inventory preload failed",

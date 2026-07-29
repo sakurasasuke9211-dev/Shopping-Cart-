@@ -30,6 +30,15 @@ function logLoad(result: InventoryLoadResult): void {
   }
 }
 
+/** Instant sync bootstrap — used on every Vercel cold start before any I/O. */
+export function bootstrapEmbeddedInventory(): InventoryLoadResult {
+  if (cache && cache.productCount > 0) return cache;
+  const result = loadEmbeddedCatalog();
+  cache = result;
+  logLoad(result);
+  return result;
+}
+
 async function tryLoadFromFiles(): Promise<InventoryLoadResult | null> {
   try {
     return await tryLoadFromFallbackPaths(config.inventory.fallbackPaths);
@@ -43,7 +52,6 @@ async function tryLoadFromFiles(): Promise<InventoryLoadResult | null> {
 }
 
 async function tryLoadSheetsSafe(): Promise<InventoryLoadResult | null> {
-  // Never block Vercel cold starts on Google Sheets (often exceeds function timeout).
   if (isVercel) return null;
   try {
     return await tryLoadFromSheets();
@@ -60,18 +68,17 @@ async function loadInventoryInternal(): Promise<InventoryLoadResult> {
   const warnings: string[] = [];
   let result: InventoryLoadResult | null = null;
 
-  // Vercel: embedded catalog is instant and always available in the bundle.
+  // Always prefer the compiled-in catalog on Vercel (instant, reliable).
   if (isVercel) {
-    try {
-      result = loadEmbeddedCatalog();
-      warnings.push("Using embedded catalog on Vercel (Sheets skipped).");
-    } catch (error) {
-      console.error(
-        "[inventory] embedded catalog failed",
-        error instanceof Error ? error.message : error,
-      );
-      warnings.push("Embedded catalog failed; trying file fallback.");
-    }
+    result = bootstrapEmbeddedInventory();
+    warnings.push("Using embedded catalog on Vercel (Sheets skipped).");
+    result = {
+      ...result,
+      warnings: [...warnings, ...result.warnings],
+    };
+    cache = result;
+    logLoad(result);
+    return result;
   }
 
   if (!result) {
@@ -80,7 +87,6 @@ async function loadInventoryInternal(): Promise<InventoryLoadResult> {
 
   if (
     !result &&
-    !isVercel &&
     (config.inventory.preferSheets || config.inventory.sheets.spreadsheetId)
   ) {
     result = await tryLoadSheetsSafe();
@@ -112,11 +118,16 @@ async function loadInventoryInternal(): Promise<InventoryLoadResult> {
 }
 
 export async function loadInventory(): Promise<InventoryLoadResult> {
-  if (cache) return cache;
+  if (cache && cache.productCount > 0) return cache;
   if (!loadingPromise) {
     loadingPromise = loadInventoryInternal().catch((error) => {
       loadingPromise = null;
-      throw error;
+      // Last resort: never leave a Vercel instance without products.
+      try {
+        return bootstrapEmbeddedInventory();
+      } catch {
+        throw error;
+      }
     });
   }
   return loadingPromise;
@@ -163,6 +174,14 @@ export function getInventoryMeta(): Pick<
 }
 
 export function assertInventoryReady(): void {
+  if (!cache || cache.productCount === 0) {
+    try {
+      bootstrapEmbeddedInventory();
+    } catch {
+      // fall through to error below
+    }
+  }
+
   if (!cache || cache.productCount === 0) {
     throw new AppError(
       503,

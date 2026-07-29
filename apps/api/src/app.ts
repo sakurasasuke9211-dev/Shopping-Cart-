@@ -19,6 +19,7 @@ import { createPayment, confirmPayment } from "./routes/payments.js";
 import { getProductById, listProducts } from "./routes/products.js";
 import { createRecommendations } from "./routes/recommendations.js";
 import {
+  bootstrapEmbeddedInventory,
   getInventoryMeta,
   loadInventory,
 } from "./services/inventory/inventoryService.js";
@@ -26,8 +27,27 @@ import {
 let inventoryPromise: Promise<void> | null = null;
 
 async function ensureInventory(): Promise<void> {
+  // Sync path first — never block recommendations on Sheets/files on Vercel.
+  try {
+    if (!getInventoryMeta()?.productCount) {
+      bootstrapEmbeddedInventory();
+    }
+  } catch (error) {
+    console.warn(
+      "[api] sync embedded bootstrap failed",
+      error instanceof Error ? error.message : error,
+    );
+  }
+
+  if (getInventoryMeta()?.productCount) return;
+
   if (!inventoryPromise) {
-    inventoryPromise = loadInventory().then(() => undefined);
+    inventoryPromise = loadInventory()
+      .then(() => undefined)
+      .catch((error) => {
+        inventoryPromise = null;
+        throw error;
+      });
   }
   await inventoryPromise;
 }
