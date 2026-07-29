@@ -71,8 +71,8 @@ export type OrderCustomerInput = {
 
 import { getApiBaseUrl } from "../lib/apiBase";
 
-const MAX_ATTEMPTS = 4;
-const RETRY_DELAY_MS = 2500;
+const MAX_ATTEMPTS = 6;
+const RETRY_DELAY_MS = 3000;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));

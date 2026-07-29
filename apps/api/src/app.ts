@@ -57,7 +57,8 @@ export function createApp(): express.Express {
         if (
           !origin ||
           allowedOrigins.includes(origin) ||
-          allowedOrigins.includes("*")
+          allowedOrigins.includes("*") ||
+          /\.vercel\.app$/i.test(origin)
         ) {
           callback(null, true);
         } else {
