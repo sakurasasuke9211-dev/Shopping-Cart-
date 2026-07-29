@@ -9,12 +9,15 @@ let cache: InventoryLoadResult | null = null;
 let loadingPromise: Promise<InventoryLoadResult> | null = null;
 let refreshTimer: NodeJS.Timeout | null = null;
 
+const isVercel = Boolean(process.env.VERCEL);
+
 function logLoad(result: InventoryLoadResult): void {
   console.info("[inventory]", {
     source: result.source,
     productCount: result.productCount,
     warningCount: result.warnings.length,
     preferSheets: config.inventory.preferSheets,
+    vercel: isVercel,
   });
   if (result.warnings.length > 0) {
     console.info(
@@ -39,14 +42,36 @@ async function tryLoadFromFiles(): Promise<InventoryLoadResult | null> {
   }
 }
 
+async function tryLoadSheetsSafe(): Promise<InventoryLoadResult | null> {
+  // Never block Vercel cold starts on Google Sheets (often exceeds function timeout).
+  if (isVercel) return null;
+  try {
+    return await tryLoadFromSheets();
+  } catch (error) {
+    console.warn(
+      "[inventory] sheets load failed",
+      error instanceof Error ? error.message : error,
+    );
+    return null;
+  }
+}
+
 async function loadInventoryInternal(): Promise<InventoryLoadResult> {
   const warnings: string[] = [];
   let result: InventoryLoadResult | null = null;
 
   // Vercel: embedded catalog is instant and always available in the bundle.
-  if (process.env.VERCEL) {
-    result = loadEmbeddedCatalog();
-    warnings.push("Using embedded catalog on Vercel.");
+  if (isVercel) {
+    try {
+      result = loadEmbeddedCatalog();
+      warnings.push("Using embedded catalog on Vercel (Sheets skipped).");
+    } catch (error) {
+      console.error(
+        "[inventory] embedded catalog failed",
+        error instanceof Error ? error.message : error,
+      );
+      warnings.push("Embedded catalog failed; trying file fallback.");
+    }
   }
 
   if (!result) {
@@ -55,9 +80,10 @@ async function loadInventoryInternal(): Promise<InventoryLoadResult> {
 
   if (
     !result &&
+    !isVercel &&
     (config.inventory.preferSheets || config.inventory.sheets.spreadsheetId)
   ) {
-    result = await tryLoadFromSheets();
+    result = await tryLoadSheetsSafe();
     if (!result) {
       warnings.push(
         "Google Sheets unavailable or failed; using local fallback.",
@@ -88,13 +114,16 @@ async function loadInventoryInternal(): Promise<InventoryLoadResult> {
 export async function loadInventory(): Promise<InventoryLoadResult> {
   if (cache) return cache;
   if (!loadingPromise) {
-    loadingPromise = loadInventoryInternal();
+    loadingPromise = loadInventoryInternal().catch((error) => {
+      loadingPromise = null;
+      throw error;
+    });
   }
   return loadingPromise;
 }
 
 function scheduleRefresh(): void {
-  if (process.env.VERCEL) return;
+  if (isVercel) return;
 
   if (refreshTimer) {
     clearInterval(refreshTimer);

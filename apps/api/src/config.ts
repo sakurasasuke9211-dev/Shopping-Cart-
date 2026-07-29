@@ -42,10 +42,11 @@ export const config = {
   port: envInt(process.env.PORT, 4000),
   webOrigin: process.env.WEB_ORIGIN ?? "http://localhost:5173",
   inventory: {
-    preferSheets: envBool(
-      process.env.INVENTORY_PREFER_SHEETS,
-      !process.env.VERCEL,
-    ),
+    // Vercel env may set INVENTORY_PREFER_SHEETS=true; never honor that on serverless
+    // (Sheets cold-starts exceed function timeouts and cause browser "Failed to fetch").
+    preferSheets: process.env.VERCEL
+      ? false
+      : envBool(process.env.INVENTORY_PREFER_SHEETS, true),
     fallbackPath: primaryFallback,
     dataDir,
     fallbackPaths: [

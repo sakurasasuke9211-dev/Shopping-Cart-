@@ -69,10 +69,13 @@ export type OrderCustomerInput = {
   };
 };
 
-import { getApiBaseUrl } from "../lib/apiBase";
+import {
+  getApiBaseUrl,
+  getFallbackApiBaseUrl,
+} from "../lib/apiBase";
 
-const MAX_ATTEMPTS = 6;
-const RETRY_DELAY_MS = 3000;
+const MAX_ATTEMPTS = 5;
+const RETRY_DELAY_MS = 1500;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -93,12 +96,21 @@ function buildHeaders(init?: RequestInit): HeadersInit {
   return headers;
 }
 
-async function request<T>(
+function candidateBases(): string[] {
+  const primary = getApiBaseUrl();
+  const fallback = getFallbackApiBaseUrl();
+  const bases = [primary];
+  if (fallback && fallback !== primary) {
+    bases.push(fallback);
+  }
+  return bases;
+}
+
+async function requestOnce<T>(
+  base: string,
   path: string,
   init?: RequestInit,
-  attempt = 0,
-): Promise<T> {
-  const base = getApiBaseUrl();
+): Promise<{ ok: true; data: T } | { ok: false; retryable: boolean; error: Error }> {
   const url = base ? `${base}${path}` : path;
 
   try {
@@ -107,18 +119,26 @@ async function request<T>(
       headers: buildHeaders(init),
     });
 
-    const data = (await response.json().catch(() => null)) as
-      | T
-      | { error?: { message?: string } }
-      | null;
+    const contentType = response.headers.get("content-type") ?? "";
+    const rawText = await response.text();
+    let data: unknown = null;
+    if (rawText) {
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        data = null;
+      }
+    }
 
-    if (
-      !response.ok &&
-      isRetryableStatus(response.status) &&
-      attempt < MAX_ATTEMPTS - 1
-    ) {
-      await sleep(RETRY_DELAY_MS * (attempt + 1));
-      return request<T>(path, init, attempt + 1);
+    // SPA HTML or non-JSON means the /api proxy missed — try the absolute API next.
+    if (!contentType.includes("application/json") || data === null) {
+      return {
+        ok: false,
+        retryable: true,
+        error: new Error(
+          "API returned an invalid response. The server may still be starting — try again.",
+        ),
+      };
     }
 
     if (!response.ok) {
@@ -126,33 +146,52 @@ async function request<T>(
         data && typeof data === "object" && "error" in data
           ? (data as { error?: { message?: string } }).error?.message
           : undefined;
-      throw new Error(message ?? `Request failed (${response.status})`);
+      return {
+        ok: false,
+        retryable: isRetryableStatus(response.status),
+        error: new Error(message ?? `Request failed (${response.status})`),
+      };
     }
 
-    if (data === null) {
-      const contentType = response.headers.get("content-type") ?? "";
-      if (!contentType.includes("application/json")) {
-        throw new Error(
-          "API returned an invalid response. The server may still be starting — try again.",
-        );
-      }
-      throw new Error("API returned an empty response.");
-    }
-
-    return data as T;
+    return { ok: true, data: data as T };
   } catch (error) {
-    const isNetworkError = error instanceof TypeError;
-    if (isNetworkError && attempt < MAX_ATTEMPTS - 1) {
-      await sleep(RETRY_DELAY_MS * (attempt + 1));
-      return request<T>(path, init, attempt + 1);
-    }
-    if (isNetworkError) {
-      throw new Error(
-        "Could not reach the server. It may still be starting — please wait a moment and refresh.",
-      );
-    }
-    throw error;
+    const message =
+      error instanceof Error ? error.message : "Network request failed";
+    return {
+      ok: false,
+      retryable: true,
+      error: new Error(
+        message.includes("Failed to fetch") || error instanceof TypeError
+          ? "Could not reach the server. It may still be starting — please wait a moment and refresh."
+          : message,
+      ),
+    };
   }
+}
+
+async function request<T>(
+  path: string,
+  init?: RequestInit,
+  attempt = 0,
+): Promise<T> {
+  const bases = candidateBases();
+  let lastError: Error = new Error("Request failed");
+
+  for (const base of bases) {
+    const result = await requestOnce<T>(base, path, init);
+    if (result.ok) return result.data;
+    lastError = result.error;
+    if (!result.retryable) {
+      throw result.error;
+    }
+  }
+
+  if (attempt < MAX_ATTEMPTS - 1) {
+    await sleep(RETRY_DELAY_MS * (attempt + 1));
+    return request<T>(path, init, attempt + 1);
+  }
+
+  throw lastError;
 }
 
 export function fetchRecommendations(

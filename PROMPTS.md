@@ -2,6 +2,8 @@
 
 Generated from Cursor agent transcript *.jsonl files.
 
+**Last updated:** Wednesday, Jul 29, 2026 — 104 prompts (includes deployment, GitHub, and Vercel troubleshooting).
+
 ## Prompt 1
 
 Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Monday, Jul 27, 2026, 9:43 PM (UTC+5:30)
@@ -855,4 +857,168 @@ Inspect these files thoroughly:
 Return a concrete gap list with file paths and exact fixes to make. What already passes vs what's missing. Focus on actionable CSS/component changes.
 ```
 
+## Prompt 86
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 2:27 PM (UTC+5:30)
+
+```
+Make necessary changes for the deployment of project -frontend and backend on vercel and database on supabase. Create a deployment implementation list as well. Store the deployment architecture in the list also.
+```
+
+## Prompt 87
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 3:38 PM (UTC+5:30)
+
+```
+Push the project to Github.
+```
+
+## Prompt 88
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 3:46 PM (UTC+5:30)
+
+```
+https://github.com/sakurasasuke9211-dev/Shopping-Cart-.git
+```
+
+## Prompt 89
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 3:50 PM (UTC+5:30)
+
+```
+Stop frontend and backend.
+```
+
+## Prompt 90
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 4:09 PM (UTC+5:30)
+
+```
+Implement backend deployment on vercel.
+```
+
+## Prompt 91
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 4:25 PM (UTC+5:30)
+
+```
+I haven't deployed the frontend on vercel app
+```
+
+## Prompt 92
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 4:31 PM (UTC+5:30)
+
+```
+Verify: open https://<your-api>.vercel.app/api/health in the browser — should return JSON with "status": "ok".
+
+Optional: point local .env at the prod API:
+
+VITE_API_BASE_URL=https://<your-api>.vercel.app
+
+Run npm run dev:web locally to test against the deployed backend.
+How to do this?
+```
+
+## Prompt 93
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 4:33 PM (UTC+5:30)
+
+```
+shopping-cart-api-steel.vercel.app - This is the backend url
+```
+
+## Prompt 94
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 5:09 PM (UTC+5:30)
+
+```
+shopping-cart-web-two.vercel.app -> This is the frontend URL
+```
+
+## Prompt 95
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 5:19 PM (UTC+5:30)
+
+```
+This is error. Implement the fix
+```
+
+*(Screenshot: browse page showing "Failed to fetch" when loading products.)*
+
+## Prompt 96
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 5:25 PM (UTC+5:30)
+
+```
+Push these changes
+```
+
+## Prompt 97
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 5:31 PM (UTC+5:30)
+
+```
+It is still showing the same issue, rectify it
+```
+
+## Prompt 98
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 5:43 PM (UTC+5:30)
+
+```
+Push these changes to Github.
+```
+
+## Prompt 99
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 5:47 PM (UTC+5:30)
+
+```
+It is not redeploying. And the same error persist. Fix this and push it in Github.
+```
+
+## Prompt 100
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 5:59 PM (UTC+5:30)
+
+```
+Set Production Branch to main or master (whichever is connected) -> cannot see this
+```
+
+## Prompt 101
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 6:08 PM (UTC+5:30)
+
+```
+A more recent Production Deployment has been created, so the one you are looking at cannot be redeployed anymore. Learn More
+```
+
+## Prompt 102
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 6:12 PM (UTC+5:30)
+
+```
+This is error. Fix it and push the changes.
+```
+
+*(Screenshot: browse page showing "Product inventory is unavailable. Please try again shortly.")*
+
+## Prompt 103
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 6:20 PM (UTC+5:30)
+
+```
+Update the prompt file as well.
+```
+
+## Prompt 104
+
+Source: e8ee4a8b-29e4-438f-89be-856834e97ebf.jsonl | Timestamp: Wednesday, Jul 29, 2026, 9:54 PM (UTC+5:30)
+
+```
+Showing this and then fail to fetch. Fix this and push this in github.
+```
+
+*(Screenshot: questionnaire “Finding products…” then Failed to fetch.)*
 

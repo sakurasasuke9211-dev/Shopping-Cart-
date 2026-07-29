@@ -43,16 +43,19 @@ export function createApp(): express.Express {
   app.use(
     cors({
       origin: (origin, callback) => {
+        // Never pass Error to the callback — that surfaces as browser "Failed to fetch"
+        // with no useful CORS headers. Deny with `false` instead.
         if (
           !origin ||
           allowedOrigins.includes(origin) ||
           allowedOrigins.includes("*") ||
-          /\.vercel\.app$/i.test(origin)
+          /\.vercel\.app$/i.test(origin) ||
+          /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)
         ) {
           callback(null, true);
-        } else {
-          callback(new Error(`CORS: origin ${origin} not allowed`));
+          return;
         }
+        callback(null, false);
       },
       credentials: true,
     }),
