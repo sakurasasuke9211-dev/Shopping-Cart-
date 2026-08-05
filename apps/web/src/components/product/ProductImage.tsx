@@ -4,28 +4,41 @@ const FALLBACK = "/placeholder-product.svg";
 
 type ProductImageProps = {
   src?: string | null;
+  /** Alternate URLs tried in order before the local placeholder. */
+  altSrcs?: string[];
   alt: string;
   className?: string;
 };
 
-/** Product photo with local SVG fallback when the remote URL fails or is missing. */
-export function ProductImage({ src, alt, className }: ProductImageProps) {
-  const [current, setCurrent] = useState(src?.trim() || FALLBACK);
+function buildSources(src?: string | null, altSrcs?: string[]): string[] {
+  const list = [src, ...(altSrcs ?? [])]
+    .map((value) => value?.trim())
+    .filter((value): value is string => Boolean(value));
+  return [...new Set([...list, FALLBACK])];
+}
+
+/** Product photo that walks through alternates, then a local SVG placeholder. */
+export function ProductImage({ src, altSrcs, alt, className }: ProductImageProps) {
+  const [sources, setSources] = useState(() => buildSources(src, altSrcs));
+  const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    setCurrent(src?.trim() || FALLBACK);
-  }, [src]);
+    setSources(buildSources(src, altSrcs));
+    setIndex(0);
+  }, [src, altSrcs?.join("|")]);
 
   return (
     <img
       className={className}
-      src={current}
+      src={sources[index] ?? FALLBACK}
       alt={alt}
       loading="lazy"
       decoding="async"
       referrerPolicy="no-referrer"
       onError={() => {
-        if (current !== FALLBACK) setCurrent(FALLBACK);
+        setIndex((current) =>
+          current < sources.length - 1 ? current + 1 : current,
+        );
       }}
     />
   );

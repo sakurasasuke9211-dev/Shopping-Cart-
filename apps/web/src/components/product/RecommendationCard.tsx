@@ -48,7 +48,11 @@ export function RecommendationCard({
     <article className="rec-card">
       <div className="rec-card__media">
         {topMatch ? <span className="rec-card__badge">Top Match</span> : null}
-        <ProductImage src={image} alt={product.name} />
+        <ProductImage
+          src={image}
+          altSrcs={product.images.slice(1)}
+          alt={product.name}
+        />
       </div>
 
       <div className="rec-card__body">

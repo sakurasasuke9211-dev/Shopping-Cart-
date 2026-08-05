@@ -12,17 +12,17 @@ const BY_CATEGORY: Record<ProductCategory, string[]> = {
   ],
   Equipment: [
     "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1599058945522-28d584b6f14f?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80",
     "https://images.unsplash.com/photo-1576678927484-cc907957088c?auto=format&fit=crop&w=800&q=80",
   ],
   Clothing: [
     "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=80",
     "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1571902943202-507c2748c7d9?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?auto=format&fit=crop&w=800&q=80",
   ],
   Accessories: [
     "https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1575535468632-345892ee5250?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&w=800&q=80",
     "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?auto=format&fit=crop&w=800&q=80",
   ],
   Support: [

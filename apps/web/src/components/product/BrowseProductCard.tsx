@@ -24,7 +24,11 @@ export function BrowseProductCard({
   return (
     <article className="rec-card">
       <div className="rec-card__media">
-        <ProductImage src={image} alt={product.name} />
+        <ProductImage
+          src={image}
+          altSrcs={product.images.slice(1)}
+          alt={product.name}
+        />
       </div>
       <div className="rec-card__body">
         <p className="rec-card__brand">{product.brand}</p>
