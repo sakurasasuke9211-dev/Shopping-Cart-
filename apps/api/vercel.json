@@ -4,12 +4,13 @@
   "installCommand": "cd ../.. && npm install",
   "buildCommand": "cd ../.. && npm run build:shared && cd apps/api && node scripts/prepare-vercel.mjs && npx tsc -p tsconfig.json",
   "framework": null,
+  "outputDirectory": "public",
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
   "functions": {
     "api/index.ts": {
       "memory": 1024,
       "maxDuration": 60,
-      "includeFiles": "{data/**,src/inventory/**}"
+      "includeFiles": "{data/**,src/inventory/**,dist/**}"
     }
   }
 }
